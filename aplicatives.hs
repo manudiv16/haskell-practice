@@ -1,8 +1,9 @@
--- class Functor f where
---   fmap :: (a -> b) -> (f a -> f b)
 module TestAplicatives where
 
 data Failure a = Fail | Ok a deriving (Show)
+
+-- class Functor f where
+--   fmap :: (a -> b) -> (f a -> f b)
 
 instance Functor Failure where
   fmap f (Ok x) = Ok $ f x
@@ -17,6 +18,7 @@ mapFailure = fmap . fmap
 -- class (Functor f) => Applicative f where
 --   pure :: a -> f a
 --   (<*>) :: f (a -> b) -> f a -> f b
+
 instance Applicative Failure where
   pure = Ok
   (Ok f) <*> (Ok x) = Ok $ f x
@@ -24,11 +26,17 @@ instance Applicative Failure where
   _ <*> Fail = Fail
 
 safeDivideMap :: Integral a => a -> [Failure a] -> [Failure a]
-safeDivideMap a (x : xs) =
+safeDivideMap a x =
+  if a == 0
+    then Fail : [Fail | _ <- tail x]
+    else (`div` a) <$$> x
+
+oldSafeDivideMap :: Integral a => a -> [Failure a] -> [Failure a]
+oldSafeDivideMap a (x : xs) =
   if a == 0
     then Fail : [Fail | _ <- [xs]]
     else (Ok (`div` a) <*> x) : safeDivideMap a xs
-safeDivideMap a [] = []
+oldSafeDivideMap a [] = []
 
 -- class (Applicative m) => Monad m where
 --   return :: a -> m a
@@ -40,7 +48,15 @@ instance Monad Failure where
   Fail >>= f = Fail
 
 safeDivide :: Failure Int -> Failure Int -> Failure Int
-safeDivide xm ym =
+safeDivide xm ym = do
+  x <- xm
+  y <- ym
+  if y == 0
+    then Fail
+    else return $ div x y
+
+oldSafeDivide :: Failure Int -> Failure Int -> Failure Int
+oldSafeDivide xm ym =
   xm
     >>= ( \x ->
             ym
