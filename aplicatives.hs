@@ -26,16 +26,12 @@ instance Applicative Failure where
   _ <*> Fail = Fail
 
 safeDivideMap :: Integral a => a -> [Failure a] -> [Failure a]
-safeDivideMap a x =
-  if a == 0
-    then Fail : [Fail | _ <- tail x]
-    else (`div` a) <$$> x
+safeDivideMap 0 x = [Fail | _ <- x]
+safeDivideMap a x = (`div` a) <$$> x
 
 oldSafeDivideMap :: Integral a => a -> [Failure a] -> [Failure a]
-oldSafeDivideMap a (x : xs) =
-  if a == 0
-    then Fail : [Fail | _ <- [xs]]
-    else (Ok (`div` a) <*> x) : safeDivideMap a xs
+oldSafeDivideMap 0 x = [Fail | _ <- x]
+oldSafeDivideMap a (x : xs) = (Ok (`div` a) <*> x) : safeDivideMap a xs
 oldSafeDivideMap a [] = []
 
 -- class (Applicative m) => Monad m where
