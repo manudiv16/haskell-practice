@@ -8,6 +8,12 @@ instance Functor Failure where
   fmap f (Ok x) = Ok $ f x
   fmap f Fail = Fail
 
+mapFailure :: (a -> b) -> [Failure a] -> [Failure b]
+mapFailure = fmap . fmap
+
+(<$$>) :: (a -> b) -> [Failure a] -> [Failure b]
+(<$$>) = mapFailure
+
 -- class (Functor f) => Applicative f where
 --   pure :: a -> f a
 --   (<*>) :: f (a -> b) -> f a -> f b
